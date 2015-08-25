@@ -3,10 +3,10 @@ package com.github.lucastorri.akka.cluster.examples.patterns
 import akka.actor._
 import akka.contrib.pattern.{ClusterSingletonManager, ClusterSingletonProxy}
 import com.github.lucastorri.akka.cluster.examples.ClusterSeed
+import com.github.lucastorri.akka.cluster.examples.traits.Identified
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
-import scala.util.Random
 
 object Singleton {
 
@@ -53,10 +53,9 @@ object Singleton {
     system
   }
 
-  class Singleton extends Actor {
+  class Singleton extends Actor with Identified {
 
     import context._
-    val id = Random.alphanumeric.take(8).mkString
 
     println(s"new singleton $id in $system")
     system.scheduler.scheduleOnce(10.seconds, self, 'goodbye)

@@ -3,6 +3,7 @@ package com.github.lucastorri.akka.cluster.examples.patterns
 import akka.actor._
 import akka.contrib.pattern.{DistributedPubSubExtension, DistributedPubSubMediator}
 import com.github.lucastorri.akka.cluster.examples.ClusterSeed
+import com.github.lucastorri.akka.cluster.examples.traits.Identified
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
@@ -13,9 +14,28 @@ object PubSub {
 
   val topic = "messages"
 
-  sealed trait Component extends Actor {
+  def start[C <: Component](port: Int)(implicit c: ClassTag[C]): (ActorSystem, ActorRef) = {
+    val config = ConfigFactory.parseString(
+      s"""
+         |akka.actor.provider = "akka.cluster.ClusterActorRefProvider"
+         |
+         |akka.remote.netty.tcp.port = $port
+         |akka.remote.netty.tcp.hostname = 127.0.0.1
+         |
+         |akka.extensions = ["akka.contrib.pattern.ClusterReceptionistExtension"]
+         |
+         |akka.cluster.seed-nodes = ["akka.tcp://${ClusterSeed.name}@127.0.0.1:${ClusterSeed.port}"]
+         |
+         |akka.cluster.auto-down-unreachable-after = 10s
+       """.stripMargin)
 
-    val id = Random.alphanumeric.take(8).mkString
+    val system = ActorSystem(ClusterSeed.name, config)
+
+    system -> system.actorOf(Props[C])
+  }
+
+  sealed trait Component extends Actor with Identified {
+
     val mediator = DistributedPubSubExtension(context.system).mediator
 
     override def receive: Receive = {
@@ -56,24 +76,6 @@ object PubSub {
 
   case class Message(from: String, content: String)
 
-  def start[C <: Component](port: Int)(implicit c: ClassTag[C]): (ActorSystem, ActorRef) = {
-    val config = ConfigFactory.parseString(
-      s"""
-         |akka.actor.provider = "akka.cluster.ClusterActorRefProvider"
-         |
-         |akka.remote.netty.tcp.port = $port
-         |akka.remote.netty.tcp.hostname = 127.0.0.1
-         |
-         |akka.extensions = ["akka.contrib.pattern.ClusterReceptionistExtension"]
-         |
-         |akka.cluster.seed-nodes = ["akka.tcp://${ClusterSeed.name}@127.0.0.1:${ClusterSeed.port}"]
-         |
-         |akka.cluster.auto-down-unreachable-after = 10s
-       """.stripMargin)
-    val system = ActorSystem(ClusterSeed.name, config)
-    system -> system.actorOf(Props[C])
-  }
-
 }
 
 object PubSubMain extends App {
@@ -85,5 +87,5 @@ object PubSubMain extends App {
 
   
   Thread.sleep(10000)
-  seed.shutdown() // After peers are connected, the entry point node can even be shut down
+  seed.shutdown()
 }

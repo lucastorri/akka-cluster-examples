@@ -9,6 +9,9 @@ import com.typesafe.config.ConfigFactory
 /** XXX How to avoid a fixed entry point?
   *   - Dynamically configure seed: when a node started, it adds itself to a set in redis, and uses that
   *   as the list of available nodes (Cluster(system).joinSeedNodes(addresses))
+  *
+  *
+  * After peers are connected, the entry point node can even be shut down.
   */
 object ClusterSeed {
 

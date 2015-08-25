@@ -3,6 +3,7 @@ package com.github.lucastorri.akka.cluster.examples.patterns
 import akka.actor._
 import akka.contrib.pattern.{ClusterSharding, ShardRegion}
 import com.github.lucastorri.akka.cluster.examples.ClusterSeed
+import com.github.lucastorri.akka.cluster.examples.traits.Identified
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
@@ -62,9 +63,7 @@ object Sharding {
     system
   }
 
-  class Shard extends Actor {
-
-    val id = Random.alphanumeric.take(8).mkString
+  class Shard extends Actor with Identified {
 
     override def receive: Receive = {
       case Ping(n) =>
