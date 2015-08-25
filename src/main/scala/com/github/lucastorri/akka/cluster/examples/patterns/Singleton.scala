@@ -57,8 +57,10 @@ object Singleton {
 
     import context._
 
-    println(s"new singleton $id in $system")
-    system.scheduler.scheduleOnce(10.seconds, self, 'goodbye)
+    override def preStart(): Unit = {
+      println(s"new singleton $id in $system")
+      system.scheduler.scheduleOnce(10.seconds, self, 'goodbye)
+    }
 
     override def receive: Receive = {
       case 'goodbye =>
@@ -78,10 +80,11 @@ object Singleton {
     val singleton = context.actorOf(ClusterSingletonProxy.props(path, Some(role)))
     val pingInterval = 5.seconds
 
-    system.scheduler.schedule(pingInterval, pingInterval) {
-      println("Locate ping")
-      singleton ! 'hi
-    }
+    override def preStart(): Unit =
+      system.scheduler.schedule(pingInterval, pingInterval) {
+        println("Locate ping")
+        singleton ! 'hi
+      }
 
     override def receive: Receive = {
       case msg => println(s"Locate $msg")

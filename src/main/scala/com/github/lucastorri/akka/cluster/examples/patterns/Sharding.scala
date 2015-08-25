@@ -83,7 +83,8 @@ object Sharding {
     val pingInterval = 10.seconds
     val client = ClusterSharding(system).start(shardName, Some(Props[Shard]), idExtractor, shardResolver)
 
-    system.scheduler.schedule(pingInterval, pingInterval, self, 'ping)
+    override def preStart(): Unit =
+      system.scheduler.schedule(pingInterval, pingInterval, self, 'ping)
 
     override def receive: Receive = {
       case 'ping =>

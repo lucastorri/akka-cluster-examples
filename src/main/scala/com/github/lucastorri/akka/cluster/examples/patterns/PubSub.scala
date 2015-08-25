@@ -52,7 +52,8 @@ object PubSub {
 
     val publishInterval = 10.seconds
 
-    system.scheduler.schedule((3 + Random.nextInt(7)).seconds, publishInterval, self, 'publish)
+    override def preStart(): Unit =
+      system.scheduler.schedule((3 + Random.nextInt(7)).seconds, publishInterval, self, 'publish)
 
     override def handle: Receive = {
       case 'publish =>
@@ -65,7 +66,8 @@ object PubSub {
 
   class Subscriber extends Component {
 
-    mediator ! DistributedPubSubMediator.Subscribe(topic, self)
+    override def preStart(): Unit =
+      mediator ! DistributedPubSubMediator.Subscribe(topic, self)
 
     override def handle: Receive = {
       case _: DistributedPubSubMediator.SubscribeAck =>
