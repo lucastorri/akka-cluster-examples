@@ -1,7 +1,7 @@
 package com.github.lucastorri.akka.cluster.examples.patterns
 
 import akka.actor._
-import akka.contrib.pattern.{ClusterSharding, ShardRegion}
+import akka.cluster.sharding.{ClusterShardingSettings, ClusterSharding, ShardRegion}
 import com.github.lucastorri.akka.cluster.examples.ClusterSeed
 import com.github.lucastorri.akka.cluster.examples.traits.Identified
 import com.typesafe.config.ConfigFactory
@@ -9,17 +9,22 @@ import com.typesafe.config.ConfigFactory
 import scala.concurrent.duration._
 import scala.util.Random
 
+/** Notes:
+  *
+  * Shards can used together with persistence
+  *
+  */
 object Sharding {
 
   val shardName = "Shard"
   val role = "Shard"
   val nodes = 5
 
-  val idExtractor: ShardRegion.IdExtractor = {
+  val idExtractor: ShardRegion.ExtractEntityId = {
     case msg @ Ping(id) => (id.toString, msg)
   }
 
-  val shardResolver: ShardRegion.ShardResolver = {
+  val shardResolver: ShardRegion.ExtractShardId = {
     case Ping(id) => (id % (nodes * 10)).toString
   }
 
@@ -39,7 +44,7 @@ object Sharding {
 
     val system = ActorSystem(ClusterSeed.name, config)
 
-    ClusterSharding(system).start(shardName, Some(Props[Shard]), idExtractor, shardResolver)
+    ClusterSharding(system).start(shardName, Props[Shard], ClusterShardingSettings(system), idExtractor, shardResolver)
 
     system
   }
@@ -81,7 +86,7 @@ object Sharding {
     import context._
 
     val pingInterval = 10.seconds
-    val client = ClusterSharding(system).start(shardName, Some(Props[Shard]), idExtractor, shardResolver)
+    val client = ClusterSharding(system).start(shardName, Props[Shard], ClusterShardingSettings(system), idExtractor, shardResolver)
 
     override def preStart(): Unit =
       system.scheduler.schedule(pingInterval, pingInterval, self, 'ping)

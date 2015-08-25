@@ -3,7 +3,6 @@ package com.github.lucastorri.akka.cluster.examples
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.ClusterDomainEvent
-import akka.contrib.pattern.{ClusterReceptionistExtension, DistributedPubSubExtension}
 import com.typesafe.config.ConfigFactory
 
 /** Notes:
@@ -37,30 +36,7 @@ object ClusterSeed {
 
     val system = ActorSystem(name, config)
 
-    system.actorOf(Props[ClusterStateListener])
-    system.actorOf(Props[PubSubExtension])
-
     system
-  }
-
-  class ClusterStateListener extends Actor {
-
-    Cluster(context.system).subscribe(self, classOf[ClusterDomainEvent])
-
-    override def receive: Actor.Receive = {
-      case msg => println(s"ClusterStateListener $msg")
-    }
-  }
-
-  class PubSubExtension extends Actor {
-
-    val mediator = DistributedPubSubExtension(context.system).mediator
-    ClusterReceptionistExtension(context.system).registerService(self)
-
-    override def receive: Receive = {
-      case msg => println(s"PubSubExtension $msg")
-    }
-
   }
 
 }

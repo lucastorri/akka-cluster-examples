@@ -1,7 +1,7 @@
 package com.github.lucastorri.akka.cluster.examples.patterns
 
 import akka.actor._
-import akka.contrib.pattern.{ClusterSingletonManager, ClusterSingletonProxy}
+import akka.cluster.singleton.{ClusterSingletonManagerSettings, ClusterSingletonProxySettings, ClusterSingletonManager, ClusterSingletonProxy}
 import com.github.lucastorri.akka.cluster.examples.ClusterSeed
 import com.github.lucastorri.akka.cluster.examples.traits.Identified
 import com.typesafe.config.ConfigFactory
@@ -22,13 +22,14 @@ object Singleton {
          |akka.remote.netty.tcp.port = $port
          |akka.remote.netty.tcp.hostname = 127.0.0.1
          |
+         |akka.cluster.roles = ["$role"]
          |akka.cluster.seed-nodes = ["akka.tcp://${ClusterSeed.name}@127.0.0.1:${ClusterSeed.port}"]
-         |akka.cluster.roles = [$role]
          |akka.cluster.auto-down-unreachable-after = 10s
        """.stripMargin)
     val system = ActorSystem(ClusterSeed.name, config)
 
-    val manager = ClusterSingletonManager.props(Props[Singleton], singletonName, PoisonPill, None)
+    val settings = ClusterSingletonManagerSettings(system).withRole(role)
+    val manager = ClusterSingletonManager.props(Props[Singleton], PoisonPill, settings)
     system.actorOf(manager, managerName)
 
     system
@@ -43,7 +44,6 @@ object Singleton {
          |akka.remote.netty.tcp.hostname = 127.0.0.1
          |
          |akka.cluster.seed-nodes = ["akka.tcp://${ClusterSeed.name}@127.0.0.1:${ClusterSeed.port}"]
-         |akka.cluster.roles = [$role]
          |akka.cluster.auto-down-unreachable-after = 10s
        """.stripMargin)
     val system = ActorSystem(ClusterSeed.name, config)
@@ -65,7 +65,7 @@ object Singleton {
     override def receive: Receive = {
       case 'goodbye =>
         println(s"Singleton $id going down")
-        system.shutdown()
+        system.terminate()
       case msg =>
         println(s"Singleton $id $msg")
     }
@@ -76,8 +76,9 @@ object Singleton {
 
     import context._
 
-    val path = s"/user/$managerName/$singletonName"
-    val singleton = context.actorOf(ClusterSingletonProxy.props(path, Some(role)))
+    val path = s"/user/$managerName"
+    val settings = ClusterSingletonProxySettings(system).withRole(role)
+    val singleton = context.actorOf(ClusterSingletonProxy.props(path, settings))
     val pingInterval = 5.seconds
 
     override def preStart(): Unit =
