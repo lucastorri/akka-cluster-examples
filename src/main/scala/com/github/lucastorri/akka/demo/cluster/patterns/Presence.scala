@@ -1,10 +1,11 @@
-package com.github.lucastorri.akka.cluster.examples.patterns
+package com.github.lucastorri.akka.demo.cluster.patterns
 
 import akka.actor._
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{InitialStateAsEvents, MemberEvent, UnreachableMember}
-import com.github.lucastorri.akka.cluster.examples.ClusterSeed
-import com.github.lucastorri.akka.cluster.examples.traits.Identification
+import com.github.lucastorri.akka.demo.cluster.ClusterSeed
+import ClusterSeed
+import com.github.lucastorri.akka.demo.util.Identification
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._

@@ -1,4 +1,4 @@
-package com.github.lucastorri.akka.cluster.examples
+package com.github.lucastorri.akka.demo.cluster
 
 import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory

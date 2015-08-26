@@ -1,4 +1,4 @@
-package com.github.lucastorri.akka.cluster.examples.journal
+package com.github.lucastorri.akka.demo.persist.journal
 
 import java.util.concurrent.atomic.AtomicLong
 

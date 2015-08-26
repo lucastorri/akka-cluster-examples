@@ -1,4 +1,4 @@
-package com.github.lucastorri.akka.cluster.examples.traits
+package com.github.lucastorri.akka.demo.util
 
 import scala.util.Random
 
