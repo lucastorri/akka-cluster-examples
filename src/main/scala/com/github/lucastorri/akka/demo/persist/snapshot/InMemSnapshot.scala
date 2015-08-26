@@ -1,7 +1,7 @@
 package com.github.lucastorri.akka.demo.persist.snapshot
 
-import akka.persistence.{SelectedSnapshot, SnapshotMetadata, SnapshotSelectionCriteria}
 import akka.persistence.snapshot.SnapshotStore
+import akka.persistence.{SelectedSnapshot, SnapshotMetadata, SnapshotSelectionCriteria}
 
 import scala.concurrent.Future
 

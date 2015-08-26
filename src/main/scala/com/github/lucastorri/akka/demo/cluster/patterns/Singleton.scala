@@ -3,7 +3,6 @@ package com.github.lucastorri.akka.demo.cluster.patterns
 import akka.actor._
 import akka.cluster.singleton.{ClusterSingletonManager, ClusterSingletonManagerSettings, ClusterSingletonProxy, ClusterSingletonProxySettings}
 import com.github.lucastorri.akka.demo.cluster.ClusterSeed
-import ClusterSeed
 import com.github.lucastorri.akka.demo.util.Identification
 import com.typesafe.config.ConfigFactory
 

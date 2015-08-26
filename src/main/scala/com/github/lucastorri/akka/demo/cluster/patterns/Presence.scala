@@ -4,7 +4,6 @@ import akka.actor._
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{InitialStateAsEvents, MemberEvent, UnreachableMember}
 import com.github.lucastorri.akka.demo.cluster.ClusterSeed
-import ClusterSeed
 import com.github.lucastorri.akka.demo.util.Identification
 import com.typesafe.config.ConfigFactory
 
