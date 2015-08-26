@@ -61,6 +61,8 @@ object Persistent {
       case Throw =>
         println("throw")
         throw new Exception
+      case other =>
+        println(s"other $other")
     }
 
     def persisted(msg: Message): Unit =
