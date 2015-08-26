@@ -65,7 +65,8 @@ object Persistent {
         throw ExpectedException
       case SaveSnapshotSuccess(meta) =>
         lastSaved.foreach(deleteMessages)
-        val criteria = SnapshotSelectionCriteria(meta.sequenceNr - 1, meta.timestamp, 0, 0)
+        val upTo = meta.sequenceNr - 1
+        val criteria = SnapshotSelectionCriteria(upTo, meta.timestamp, upTo, meta.timestamp)
         deleteSnapshots(criteria)
         println(s"clean old messagesUpTo=$lastSaved snapshotsUpTo=$criteria")
       case other =>
