@@ -2,7 +2,7 @@ package com.github.lucastorri.akka.cluster.examples.traits
 
 import scala.util.Random
 
-trait Identified {
+trait Identification {
 
   val id = Random.alphanumeric.take(8).mkString
 

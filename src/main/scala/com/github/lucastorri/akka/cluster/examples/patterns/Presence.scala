@@ -2,9 +2,9 @@ package com.github.lucastorri.akka.cluster.examples.patterns
 
 import akka.actor._
 import akka.cluster.Cluster
-import akka.cluster.ClusterEvent.{UnreachableMember, InitialStateAsEvents, MemberEvent}
+import akka.cluster.ClusterEvent.{InitialStateAsEvents, MemberEvent, UnreachableMember}
 import com.github.lucastorri.akka.cluster.examples.ClusterSeed
-import com.github.lucastorri.akka.cluster.examples.traits.Identified
+import com.github.lucastorri.akka.cluster.examples.traits.Identification
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
@@ -47,7 +47,7 @@ object Presence {
     system
   }
 
-  class Attendant(n: Int) extends Actor with Identified {
+  class Attendant(n: Int) extends Actor with Identification {
 
     import context._
 

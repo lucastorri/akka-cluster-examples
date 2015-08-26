@@ -1,9 +1,9 @@
 package com.github.lucastorri.akka.cluster.examples.patterns
 
 import akka.actor._
-import akka.cluster.sharding.{ClusterShardingSettings, ClusterSharding, ShardRegion}
+import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
 import com.github.lucastorri.akka.cluster.examples.ClusterSeed
-import com.github.lucastorri.akka.cluster.examples.traits.Identified
+import com.github.lucastorri.akka.cluster.examples.traits.Identification
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
@@ -11,7 +11,8 @@ import scala.util.Random
 
 /** Notes:
   *
-  * Shards can used together with persistence
+  * Shards can used together with persistence or with distributed data mode
+  * http://doc.akka.io/docs/akka/2.4.0-RC1/scala/cluster-sharding.html#Distributed_Data_Mode
   *
   */
 object Sharding {
@@ -36,15 +37,20 @@ object Sharding {
          |akka.remote.netty.tcp.port = $port
          |akka.remote.netty.tcp.hostname = 127.0.0.1
          |
+         |akka.cluster.roles = ["$role"]
          |akka.cluster.seed-nodes = ["akka.tcp://${ClusterSeed.name}@127.0.0.1:${ClusterSeed.port}"]
          |akka.cluster.auto-down-unreachable-after = 10s
          |
-         |akka.contrib.cluster.sharding.role = "$role"
+         |mem-journal.class = "com.github.lucastorri.akka.cluster.examples.journal.SharedInMemJournal"
+         |mem-journal.plugin-dispatcher = "akka.actor.default-dispatcher"
+         |
+         |akka.cluster.sharding.journal-plugin-id = "mem-journal"
        """.stripMargin)
 
     val system = ActorSystem(ClusterSeed.name, config)
 
-    ClusterSharding(system).start(shardName, Props[Shard], ClusterShardingSettings(system), idExtractor, shardResolver)
+    val settings = ClusterShardingSettings(system).withRole(role)
+    ClusterSharding(system).start(shardName, Props[Shard], settings, idExtractor, shardResolver)
 
     system
   }
@@ -68,7 +74,7 @@ object Sharding {
     system
   }
 
-  class Shard extends Actor with Identified {
+  class Shard extends Actor with Identification {
 
     override def receive: Receive = {
       case Ping(n) =>
@@ -86,7 +92,7 @@ object Sharding {
     import context._
 
     val pingInterval = 10.seconds
-    val client = ClusterSharding(system).start(shardName, Props[Shard], ClusterShardingSettings(system), idExtractor, shardResolver)
+    val client = ClusterSharding(system).startProxy(shardName, Some(role), idExtractor, shardResolver)
 
     override def preStart(): Unit =
       system.scheduler.schedule(pingInterval, pingInterval, self, 'ping)
@@ -105,7 +111,8 @@ object Sharding {
 
 object ShardingMain extends App {
 
-  ClusterSeed.start
+  val system = ClusterSeed.start
+
 
   (1 to Sharding.nodes).foreach(n => Sharding.shard(7770 + n))
 

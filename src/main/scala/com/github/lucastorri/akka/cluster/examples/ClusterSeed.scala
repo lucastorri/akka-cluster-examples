@@ -1,8 +1,6 @@
 package com.github.lucastorri.akka.cluster.examples
 
-import akka.actor.{Actor, ActorSystem, Props}
-import akka.cluster.Cluster
-import akka.cluster.ClusterEvent.ClusterDomainEvent
+import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
 
 /** Notes:
