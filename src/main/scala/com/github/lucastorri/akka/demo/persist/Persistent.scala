@@ -1,7 +1,7 @@
 package com.github.lucastorri.akka.demo.persist
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.persistence.{RecoveryCompleted, SnapshotOffer, PersistentActor}
+import akka.persistence._
 import com.github.lucastorri.akka.demo.persist.Persistent.{Message, Snapshot, Throw}
 import com.typesafe.config.ConfigFactory
 
@@ -30,6 +30,7 @@ object Persistent {
   class Persistent extends PersistentActor {
 
     var state = State()
+    var lastSaved = Option.empty[Long]
 
     override val persistenceId: String = "persistence-id"
 
@@ -57,25 +58,35 @@ object Persistent {
         println(s"command $msg => $state")
       case Snapshot =>
         println("snapshot")
+        lastSaved = Some(lastSequenceNr)
         saveSnapshot(state)
       case Throw =>
         println("throw")
-        throw new Exception
+        throw ExpectedException
+      case SaveSnapshotSuccess(meta) =>
+        lastSaved.foreach(deleteMessages)
+        val criteria = SnapshotSelectionCriteria(meta.sequenceNr - 1, meta.timestamp, 0, 0)
+        deleteSnapshots(criteria)
+        println(s"clean old messagesUpTo=$lastSaved snapshotsUpTo=$criteria")
       case other =>
         println(s"other $other")
     }
 
-    def persisted(msg: Message): Unit =
+    def persisted(msg: Message): Unit = {
       println(s"persisted $msg")
+    }
 
   }
 
   case object Throw
   case object Snapshot
-  case class Message(id: Int)
+  case class Message(value: Int)
   case class State(messages: Set[Message] = Set.empty) {
     def +(msg: Message): State = State(messages + msg)
     def contains(msg: Message): Boolean = messages.contains(msg)
+  }
+  case object ExpectedException extends Exception {
+    override def fillInStackTrace(): Throwable = this
   }
 
 }
