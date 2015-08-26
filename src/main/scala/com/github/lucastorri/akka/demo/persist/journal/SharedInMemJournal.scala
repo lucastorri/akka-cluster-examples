@@ -44,7 +44,7 @@ object SharedInMemJournal {
 
   class Store {
 
-    private val counter = new AtomicLong()
+    private val counter = new AtomicLong(1)
     private var store = mutable.ListBuffer.empty[Entry]
 
     def add(repr: PersistentRepr): Unit = synchronized {
@@ -60,7 +60,8 @@ object SharedInMemJournal {
     }
 
     def slice(fromId: Long, toId: Long, max: Long): Stream[PersistentRepr] = {
-      store.toStream.dropWhile(_.id < fromId).takeWhile(_.id <= toId).take(max.toInt).map(_.value)
+      val m = if (max > Int.MaxValue) Int.MaxValue else max.toInt
+      store.toStream.dropWhile(_.id < fromId).takeWhile(_.id <= toId).take(m).map(_.value)
     }
 
   }
